@@ -1,1 +1,61 @@
-Measure Stuff
+CubeSat Power Draw
+  1. Idle
+    a. Pi 3 - 
+    b. Pi 4 - 
+  2. Camera + IMU
+    a. Pi 3 - 
+    b. Pi 4 - 
+  3. Full sun - time to zero battery with Camera + IMU
+    a. Pi 3 - 
+    b. Pi 4 - 
+  3. Stress Test
+    a. Pi 3 - 
+    b. Pi 4 - 
+    
+CubeSat Power Draw
+  1. Voltage 
+  2. Current
+  3. Power
+  4. Compare to manufacturers ratings
+  
+Power vs. Pitch
+  1. Power vs angle to the sun
+  2. How to calculate
+  
+Power Budget
+  1. No sun tracking
+    a. 15 hour day in the sun + 9 in the dark
+      i. about 180deg/15hr angular velocity of sun in sky 
+      ii. no power in the dark
+      iii. power in the light - 2* integrate power vs time (from angle) = XXX Wh
+    b. battery is full - start with 10Ah at 5V = 50Wh
+    c. run things
+      i. flatsat 3 hours = XXX Wh (Pi 3) and XXX Wh (Pi 4)
+      ii. stressberry 3 hours = XXX Wh (Pi 3) and XXX Wh (Pi 4)
+      iii. idle for 18 hours = XXX Wh (Pi 3) and XXX Wh (Pi 4)
+    d. sustainable? how many Wh left in battery
+      i. Pi 3 - 
+      ii. Pi 4 - 
+  2. With sun tracking
+    a. 15 hour day in the sun + 9 in the dark
+      i. about 180deg/15hr angular velocity of sun in sky 
+      ii. no power in the dark
+      iii. power in the light - max power * day length = XXX Wh
+    b. battery is full - start with 10Ah at 5V = 50Wh
+    c. run things
+      i. flatsat 3 hours = XXX Wh (Pi 3) and XXX Wh (Pi 4)
+      ii. stressberry 3 hours = XXX Wh (Pi 3) and XXX Wh (Pi 4)
+      iii. idle for 18 hours = XXX Wh (Pi 3) and XXX Wh (Pi 4)
+    d. sustainable? how many Wh left in battery
+      i. Pi 3 - 
+      ii. Pi 4 - 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
