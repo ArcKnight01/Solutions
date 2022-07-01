@@ -24,19 +24,32 @@ Sam_north = 340
 Hasan_north = 0
 Kat_north = -353
 
+
 def imuBoot():
+    """
+    indicates the IMU is ready for use
+    """
     global telemString
     return 'ADCS is go for launch /n' ;
+
 def getyaw():
-    global Sajiv_north
-    global Sam_north
-    global Hasan_north
-    global Kat_north
+    """
+    determines yaw relative to magnetic north
+    """
+
+    # vector for magnetic north for everyone
+    global Emily_north
+    global Maddie_north
+    global Aidan_north
+    # 
     global prevyaw
     global yaw
+
+    # get sensor measurements
     accel_x, accel_y, accel_z = sensor.accelerometer
     mag_x, mag_y, mag_z = sensor.magnetometer
     
+    # calculate pitch
     pitch = 180 * numpy.arctan2(accel_x, (accel_y*accel_y + accel_z*accel_z)**0.5)/numpy.pi
     pitch_corrected = 180 * numpy.arctan2(accel_x, (accel_y*accel_y + accel_z*accel_z)**0.5)/numpy.pi
     """if accel_x >= 0 and accel_z >= 0 : 
@@ -61,14 +74,15 @@ def getyaw():
     if accel_z > 0 and accel_y >= 0:
         roll_corrected = roll + 360
     '''
+    # adjust pitch and roll to be in radians
     roll_rad = roll*numpy.pi/180
     pitch_rad = pitch*numpy.pi/180
     
+    # Calculate yaw
     mag_x_comp1 = mag_x*math.cos(pitch_rad) + mag_y*math.sin(roll_rad)*math.sin(pitch_rad) + mag_z*math.cos(roll_rad)*math.sin(pitch_rad)
     mag_y_comp1 = mag_y * math.cos(roll_rad) - mag_z * math.sin(roll_rad)
-    
     yaw = numpy.arctan2(-mag_y_comp1, mag_x_comp1) 
-    yaw = math.sin(yaw)
+    yaw = math.sin(yaw) #
     yaw = yaw*360
     '''
     if(prevyaw == 0):
