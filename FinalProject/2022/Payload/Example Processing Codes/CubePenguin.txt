@@ -1,0 +1,24 @@
+# run in the command line by typing
+# python3 areaCalc.py <path/to/image/file>
+
+
+import cv2
+import numpy as np
+
+def main(filepath):
+    print("area:",bgr(filepath),"mm^2")
+
+def bgr(filepath):
+    image = cv2.imread(filepath)
+    red_range = [(0, 0, 100), (100, 100, 255)]
+    red = cv2.inRange(image, red_range[0], red_range[1])
+    red_count = np.count_nonzero(red == 255)
+    total_pixels = image.shape[0] * image.shape[1]
+    perc_red = red_count / total_pixels
+    area = round(71733.51 * perc_red)
+    #mask = cv2.bitwise_and(image, image, mask=red)
+    return area
+
+if __name__ == "__main__":
+    import sys
+    main(*sys.argv[1:])

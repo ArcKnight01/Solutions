@@ -1,0 +1,181 @@
+import cv2
+import numpy as np
+import time
+import json
+import os.path
+from os.path import isfile, join
+from os import listdir
+from os import walk
+from threading import Thread
+
+#folderName = "lance_cubesat" #Lance
+#folderName = "ian_cubesat" #Ian
+#folderName = "michelle_cubesat" #Michelle
+#folderName = "ethan_cubesat" #Ethan
+
+camResX = 820
+camResY = 616
+tuning = 1.263 #Lance
+#tuning = 1 #Ian
+#tuning = 1 #Michelle
+#tuning = 1 #Ethan
+
+rangeHSV = [(3, 75, 40), (15, 255, 255)]
+
+folder = 0
+print("Input absolute filepath to folder containing images: ex: /home/pi/Desktop/images")
+imageFolder=input()
+print("Input absolute filepath to folder for results ex: /home/pi/Desktop/processed")
+processedFolder = input()
+print("Input absolute filepath to folder where this program is stored ex: /home/pi/StudentWork")
+path = input()
+
+def findBrown(img):
+    global rangeHSV
+    hsvimg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    mask = cv2.inRange(hsvimg, *rangeHSV)
+    return mask
+    
+def findConnected(img, min_size):
+    
+    mask = findBrown(img)
+    #group pixels by if they are touching
+    numLabels, labels, stats, centroids = cv2.connectedComponentsWithStats(mask, 8)
+    #last element of stats is area
+    sizes = stats[:, -1]
+    largeNumLabels = 0
+    largeLabels = np.zeros(labels.shape, labels.dtype)
+    largeStats = []
+    largeCentroids = []
+    #only add regions if they have an area larger than min_size
+    for i in range(0, numLabels):
+        if sizes[i] > min_size:
+            largeLabels[labels == i] = largeNumLabels
+            largeStats.append(sizes[i])
+            largeCentroids.append(centroids[i])
+            largeNumLabels = largeNumLabels + 1
+    largeLabels = np.uint8(largeLabels)
+    return largeNumLabels, largeLabels, largeStats, largeCentroids
+
+
+def colorize(img, satAngle, sector, t):
+    global tuning
+    num, labels, stats, centroids = findConnected(img, camResX * camResY / 500)
+    labelsHSV = np.zeros(img.shape)
+    colorStep = 180.0 / num
+    for i in range(1, num):
+        labelsHSV[labels == i] = [i * colorStep, 255, 255]
+    labelsHSV = np.uint8(labelsHSV)
+    colors = cv2.cvtColor(labelsHSV, cv2.COLOR_HSV2BGR)
+    image = cv2.addWeighted(colors, 0.8, img, 1, 0)
+    
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    for i in range(1, num):
+        x, y = centroids[i]
+        x = int(round(x))
+        y = int(round(y))
+        image = cv2.putText(image, str(i), (x, y), font, 1, (0, 0, 0), 1, cv2.LINE_AA)
+    
+    resScaleFactor = 3280 / camResX # camera resolution scaled down by 1/2
+                       # from (3280x2464) in camera.py
+    pxlSize = 1.12 #um
+    focalLength = 3.04 #mm
+    distToGround = 26 #cm
+    
+    #convert to mm
+    distToGround *= 10
+    pxlSize *= 0.001
+    
+    GSD = distToGround * pxlSize * resScaleFactor * np.sqrt(tuning) / focalLength
+    area = GSD * GSD
+    areas = np.array(stats[1:]) * area
+    
+    #dist to edge of screen
+    dist = 140 #mm
+    angles = []
+    
+
+    for i in range(1, num):
+        x, y = centroids[i]
+        x = camResX - x
+        y -= camResY / 2
+        x *= GSD
+        y *= GSD
+        x += dist
+        angle = -np.arctan2(y, x) * 180 / np.pi
+        angles.append(angle)
+    
+    imageData = cv2.copyMakeBorder(image, (num + 1) * 50, 0, 0, 0, cv2.BORDER_CONSTANT, None, (255, 255, 255))
+    pictext = "Sat at: " + str(round(satAngle, 6)) + " Sector: " + str(sector) + " Time: " + t
+    imageData = cv2.putText(imageData, pictext, (0, 50), font, 1, (0, 0, 0), 1, cv2.LINE_AA)
+    for i in range(1, num):
+        text = str(i) + ": " + str(round(areas[i - 1], 6)) + "mm2, " + str(round((angles[i - 1] + satAngle) % 360, 6)) + "deg"
+        imageData = cv2.putText(imageData, text, (0, 50 + i * 50), font, 1, (0, 0, 0), 1, cv2.LINE_AA)
+        
+    return imageData, num > 1
+
+def processImage(img, fn):
+    global processedFolder
+    global folder
+    t, angle, sector = fn.split("_")
+    angle = float(angle)
+    sector = int(sector)
+    image, guano = colorize(img, angle, sector, t)
+    
+    g = "G_" if guano else ""
+    
+    cv2.imwrite(join(processedFolder, g + str(t) + ".jpg"), image)
+    cv2.imwrite(join(processedFolder, g + str(t) + "RAW.jpg"), img)
+    
+#load the list of already transmitted files
+alreadyTransmitted=[]
+#check if JSON file exists already
+if os.path.isfile(path + "alreadyProcessed.json"):
+   #read JSON file
+   with open(path + "alreadyProcessed.json", 'r') as jsonfile:
+      data=jsonfile.read()
+   # parse file
+   alreadyTransmitted = json.loads(data)
+
+def runupload():
+   global imageFolder
+   global path
+   #check image folder for new files
+   onlyfiles = [f for f in listdir(imageFolder) if isfile(join(imageFolder, f))]
+   onlyfiles.sort()
+   for fn in onlyfiles:
+      if fn not in alreadyTransmitted and fn[-4:] == ".jpg":         
+         #this is a new file: process it
+          img = cv2.imread(join(imageFolder, fn))
+          if not img is None or img == []:
+              processImage(img, fn[:-4])
+          #add fn to already processed files
+          alreadyTransmitted.append(fn)
+          with open(path + "alreadyProcessed.json", 'w') as outfile:
+             json.dump(alreadyTransmitted, outfile)
+          print("processed: "+fn)
+          break
+
+
+def loop():
+    global imageFolder
+    while not os.path.isdir(imageFolder + "/"): None
+    while True:
+        runupload()
+
+loop()
+
+"""from picamera import PiCamera
+while True:
+    with PiCamera() as cam:
+        cam.resolution = (camResX, camResY)
+        cam.capture("/home/pi/LIME/scan.jpg", use_video_port=True)
+    img = cv2.imread("/home/pi/LIME/scan.jpg")
+    
+    processed = colorize(img, 0, 1, "now")
+    #processed = findBrown(img)
+    cv2.imshow("Image", processed)
+    
+    if not cv2.waitKey(1) < 0:
+        cv2.destroyAllWindows()
+        break"""

@@ -1,0 +1,28 @@
+import time
+import cv2
+import numpy as np
+import os
+from PIL import Image
+#the path of the img VVVVVVVV
+image_path = '/home/pi/GAMMA/ImageData/11_17_17/pass1/Compressedpass1,11_17_35,105.17deg,5.31%.jpg'
+#replace the current file with the one you want to check^^^^^then run it
+
+pxpmm=3.824
+def find_area(image):
+    image=cv2.resize(image,(608,400),interpolation = cv2.INTER_AREA)
+    image = np.delete(image, slice(480,-1), 1)
+    image = np.delete(image, slice(0,40), 1)
+    mask=cv2.inRange(image, (0,0,80), (80,190,255))
+    pix=np.sum(mask)/255
+    print(pix)
+    area=pix/pxpmm
+    r=[area,mask,image]
+    return r
+
+    
+
+image=cv2.imread(image_path)
+print(find_area(image)[0])
+cv2.imshow('mask',find_area(image)[1])
+cv2.imshow('image',find_area(image)[2])
+cv2.waitKey()
