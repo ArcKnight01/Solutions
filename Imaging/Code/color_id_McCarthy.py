@@ -42,8 +42,8 @@ def part_1(image):
 
     color_range = {}
     #Figure out what the lower and upper bounds for each color should be
-    color_range["blue"] = [(200, 0, 0), (255, 255, 0)]
-    color_range["green"] = [(0, 200, 0), (100, 255, 100)]
+    color_range["blue"] = [(255, 0, 0), (255, 255, 0)]
+    color_range["green"] = [(0, 255, 0), (100, 255, 100)]
     color_range["red"] = [(0, 0, 200), (75, 75, 255)]
     
     #Counter for amount of pixels of each color
@@ -88,19 +88,22 @@ def part_2(image, image_HSV):
     #PART 2 TODO: Increase saturation, contrast, brightness, etc
     #<YOUR CODE GOES HERE>
     # Change saturation - add constant to S column in HSV image
-    saturation_change = 1
-    enhanced_image = image[:,1] + saturation_change
+    saturation_change = 20
+    s = image_HSV[:,:,1] 
+    snew = cv2.add(s, saturation_change)
 
     # Change contrast - multiply pixel by constant (in H column) keep below 255
-    contrast_change = 1
-    enhanced_image[0] = image[:,0] * contrast_change
-    enhanced_image[0] = [255 for i in enhanced_image[0] if enhanced_image[0] > 255] # keep under 255
+    contrast_change = 5
+    h = image_HSV[:,:,0]
+    hnew = cv2.add(h, contrast_change)
 
     # Change brightness - add constant value to all pixels (in H column) keep below 255
-    brightness_change = 1
-    enhanced_image[0] = image[:,0] + brightness_change
-    enhanced_image[0] = [255 for i in enhanced_image[0] if enhanced_image[0] > 255] # keep under 255
+    brightness_change = 20
+    v = image_HSV[:,:,2]
+    vnew = cv2.add(v, brightness_change)
     
+    hsvnew = cv2.merge([hnew,snew,vnew])
+    enhanced_image = cv2.cvtColor(hsvnew, cv2.COLOR_HSV2BGR)
     return enhanced_image
 
     
