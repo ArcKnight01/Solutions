@@ -107,16 +107,18 @@ def calibrate_mag():
     numTestPoints = 0;
     while numTestPoints < 10:
         magX, magY, magZ = sensor1.magnetometer
-        rollList = rollList + [magX]
-        pitchList = pitchList + [magY] 
-        yawList = yawList + [magZ]
+        print(f"Mag(x,y,z)@{numTestPoints}: {(magX, magY, magZ)}")
+        rollList.append(magX)
+        pitchList.append(magY)
+        yawList.append(magZ)
         numTestPoints += 1
+        time.sleep(1)
     print("Calibration complete.")
     # print(rollList)
     time.sleep(1) # break after calibrating
-    avgX = (np.min(rollList) + np.max(rollList))/2
-    avgY = (np.min(pitchList) + np.max(pitchList))/2
-    avgZ = (np.min(yawList) + np.max(yawList))/2
+    avgX = np.mean((np.min(rollList),np.max(rollList)))
+    avgY = np.mean((np.min(pitchList), np.max(pitchList)))
+    avgZ = np.mean((np.min(yawList), np.max(yawList)))
     calConstants = [avgX,avgY,avgZ]
     print(calConstants)
     return calConstants
@@ -136,12 +138,13 @@ def calibrate_gyro():
         pitchList = pitchList + [gyroY] 
         yawList = yawList + [gyroZ]
         numTestPoints += 1
+        time.sleep(1)
     print("Calibration complete.")
     # print(rollList)
     time.sleep(1) # break after calibrating
-    avgX = (np.min(rollList) + np.max(rollList))/2
-    avgY = (np.min(pitchList) + np.max(pitchList))/2
-    avgZ = (np.min(yawList) + np.max(yawList))/2
+    avgX = np.mean((np.min(rollList),np.max(rollList)))
+    avgY = np.mean((np.min(pitchList), np.max(pitchList)))
+    avgZ = np.mean((np.min(yawList), np.max(yawList)))
     calConstants = [avgX,avgY,avgZ]
     print(calConstants)
     return calConstants

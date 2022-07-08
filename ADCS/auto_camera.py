@@ -37,7 +37,7 @@ def capture(dir ='yaw', target_angle = 110, epsilon = 5):
         gyroX = gyroX *180/np.pi - offset_gyro[0]
         gyroY = gyroY *180/np.pi - offset_gyro[1]
         gyroZ = gyroZ *180/np.pi - offset_gyro[2]
-
+ 
         #TODO: Everything else! Be sure to not take a picture on exactly a
         #certain angle: give yourself some margin for error. 
         # get roll, pitch, yaw
