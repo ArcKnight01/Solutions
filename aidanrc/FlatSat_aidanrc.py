@@ -34,10 +34,10 @@ print(image_dir)
 
 #function for uploading image to Github
 def git_push():
-    try:
+    # try:
         git_message = "New Photo"
         repo = Repo('/home/pi/FlatSatChallenge')
-        repo.git.add('FlatSatChallenge/Images/aidanrc') #PATH TO YOUR IMAGES FOLDER, SHOULD BE LOCATED IN FlatSatChallenge/Images/YOURFOLDER
+        repo.git.add('/home/pi/FlatSatChallenge/Images/aidanrc') #PATH TO YOUR IMAGES FOLDER, SHOULD BE LOCATED IN FlatSatChallenge/Images/YOURFOLDER
         
         repo.index.commit(git_message)
         print('made the commit')
@@ -48,8 +48,8 @@ def git_push():
         origin.push()
         print('pushed changes')
         
-    except:
-        print('Couldn\'t upload to git')
+    # except:
+    #     print('Couldn\'t upload to git')
 
     
 #SET THRESHOLD
@@ -70,11 +70,7 @@ while True:
         time.sleep(5) #warmup camera
         
         #TAKE/SAVE/UPLOAD A PICTURE
-        
         name = "picture"     #Last Name, First Initial  ex. FoxJ
-        
-        
-        
         
         if name:
             #path

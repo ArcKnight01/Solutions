@@ -1,12 +1,13 @@
 # IMPORTS
 import cv2
 import numpy as np
-
+import time
+import pathlib
 from PIL import Image
 import PIL
 import os
 import glob
-
+import picamera
 #Script for determining the percentage of each color using PIL and using
 #RGB representation. When running in the command line, type the image file. Type
 #True if you want to see the image after the filters are applied
@@ -44,9 +45,9 @@ def part_1(image):
 
     color_range = {}
     #Figure out what the lower and upper bounds for each color should be
-    color_range["blue"] = [(0,0,200), (0,255,255)]
+    color_range["blue"] = [(0,0,200), (100,100,255)]
     color_range["green"] = [(0,200,0), (100,255,100)]
-    color_range["red"] = [(200,0,0), (255,75,75)]
+    color_range["red"] = [(200,0,0), (255,100,100)]
     
     #Counter for amount of pixels of each color
     color_amount = {"red":0, "green":0, "blue":0}
@@ -59,9 +60,9 @@ def part_1(image):
     red_th, red_mask, red_mask_im = get_mask(image, *color_range['red'])
     
     # count the pixels in each of the thresholds
-    color_amount["red"] = np.sum(red_th)
-    color_amount["green"] = np.sum(green_th)
-    color_amount["blue"] = np.sum(blue_th)
+    color_amount["red"] = np.sum(red_th)/255
+    color_amount["green"] = np.sum(green_th)/255
+    color_amount["blue"] = np.sum(blue_th)/255
     
     # calculate percentage of each color in the image
     total_pixels = image.shape[0] * image.shape[1]
@@ -86,22 +87,76 @@ def part_2(image, image_HSV):
     #PART 2 TODO: Increase saturation, contrast, brightness, etc
     #<YOUR CODE GOES HERE>
     # Change saturation - add constant to S column in HSV image
-    saturation_change = 1
-    enhanced_image = image[:,1] + saturation_change
+    hsv_image = image_HSV
+    hsv_change = (20,5,20)
+
+    hue_image = hsv_image[:,:, 0]
+    saturation_image = hsv_image[:,:,1]
+    value_image = hsv_image[:,:,2]
 
     # Change contrast - multiply pixel by constant (in H column) keep below 255
-    contrast_change = 1
-    enhanced_image[0] = image[:,0] * contrast_change
-    enhanced_image[0] = [255 for i in enhanced_image[0] if enhanced_image[0] > 255] # keep under 255
+   
 
     # Change brightness - add constant value to all pixels (in H column) keep below 255
-    brightness_change = 1
-    enhanced_image[0] = image[:,0] + brightness_change
-    enhanced_image[0] = [255 for i in enhanced_image[0] if enhanced_image[0] > 255] # keep under 255
     
+    # hsvnew = cv2.merge([hnew,snew,vnew])
+    enhanced_image = cv2.cvtColor(hsvnew, cv2.COLOR_HSV2BGR)
     return enhanced_image
 
+
+def snapshot(name = "default", n=1):
+    """
+    take a picture,
+    save a picture!
+    """
     
+    log_dir ='./'
+    image_dir = pathlib.Path(log_dir, 'Images')
+    image_dir.mkdir(parents=True, exist_ok=True)
+    print(image_dir)
+
+    camera = picamera.PiCamera()
+    camera.resolution = (640, 480)
+    camera.framerate = 24
+
+    camera.start_preview()
+    print("taking picture...")
+    #PAUSE
+    time.sleep(5) #warmup camera
+        
+    #TAKE/SAVE/UPLOAD A PICTURE
+        
+    # name = "     #Last Name, First Initial  ex. FoxJ
+           
+    if name:
+        #path
+        log_dir ='./'
+        image_dir = pathlib.Path(log_dir, 'Images')
+        image_dir.mkdir(parents=True, exist_ok=True)
+
+        print(image_dir)
+
+        # t = time.strftime("_%H%M%S")      # current time string
+        imgname = (str(image_dir) + '/%s' % name) # change directory to your folder
+
+        print(imgname)
+            
+        try:
+            camera.capture(imgname + ".jpg", quality = n)
+        except:
+            # restart the camera
+            camera.resolution = (640, 480)
+            camera.framerate = 24
+            time.sleep(2) # camera warmup time
+            
+        camera.stop_preview()
+        
+
+    #PAUSE
+    camera.close()
+    time.sleep(5)
+    return(imgname + ".jpg")
+
     
 #Main code that is being run
 def color_id(image_file = 'test.jpg', show = False):
@@ -118,9 +173,12 @@ def color_id(image_file = 'test.jpg', show = False):
     folder_path = '' #Replace with the folder path for the folder in the
                      #Flat Sat Challenge with your name so you can view images
                      #on Github if you don't have VNC/X forwarding
+    
 
+    image = cv2.imread('Images/' + image_file) #Converts image to numpy array in BGR format
+    
+    assert image is not None, "Image not loaded properly"
 
-    image = cv2.imread('images/' + image_file) #Converts image to numpy array in BGR format
     image_HSV = cv2.cvtColor(image, cv2.COLOR_BGR2HSV) #Converts BGR image to HSV format
     
     color_range, perc_blue, perc_green, perc_red = part_1(image) # run part 1 function 
@@ -139,6 +197,7 @@ def color_id(image_file = 'test.jpg', show = False):
     #this won't work. If show is set to False, the image masks will be stored to
     #the images/ folder
     if show:
+        print("<showing>")
         cv2.imshow('Blue Mask', blue_mask_im)
         cv2.imshow('Green Mask', green_mask_im)
         cv2.imshow('Red Mask', red_mask_im)
@@ -173,5 +232,7 @@ def color_id(image_file = 'test.jpg', show = False):
 """
 if __name__ == '__main__':
     import sys
-    
+    img2 = snapshot("image2", 5)
     color_id(*sys.argv[1:])
+    color_id(img2, False)
+    
