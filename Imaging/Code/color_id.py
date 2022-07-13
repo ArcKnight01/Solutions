@@ -88,18 +88,20 @@ def part_2(image, image_HSV):
     #<YOUR CODE GOES HERE>
     # Change saturation - add constant to S column in HSV image
     hsv_image = image_HSV
-    hsv_change = (20,5,20)
+    hsv_change = (5,20,20)
 
     hue_image = hsv_image[:,:, 0]
     saturation_image = hsv_image[:,:,1]
     value_image = hsv_image[:,:,2]
 
     # Change contrast - multiply pixel by constant (in H column) keep below 255
-   
+    hnew = np.clip(cv2.multiply(hue_image, hsv_change[0]), 0, 255)
+    snew = cv2.add(saturation_image, hsv_change[1])
+    vnew = cv2.add(value_image, hsv_change[2])
 
     # Change brightness - add constant value to all pixels (in H column) keep below 255
-    
-    # hsvnew = cv2.merge([hnew,snew,vnew])
+   
+    hsvnew = cv2.merge([hnew,snew,vnew])
     enhanced_image = cv2.cvtColor(hsvnew, cv2.COLOR_HSV2BGR)
     return enhanced_image
 
