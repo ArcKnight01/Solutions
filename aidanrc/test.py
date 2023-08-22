@@ -1,14 +1,14 @@
 
 #import libraries
-import time
-import os
-import board
-import busio
-import adafruit_fxos8700
+# import time
+# import os
+# import board
+# import busio
+# import adafruit_fxos8700
 
-from git import Repo
-from picamera import PiCamera
-import numpy as np
+# from git import Repo
+# from picamera import PiCamera
+# import numpy as np
 # import math
 # import cv2
 
